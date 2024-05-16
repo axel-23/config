@@ -1,0 +1,39 @@
+use Illuminate\Database\Eloquent\Builder;
+
+    /**
+     * The relations that are loaded by default together with a resource.
+     *
+     * @return array
+     */
+    public function alwaysIncludes(): array
+    {
+        return ['TipoDocumento', 'Nacionalidad', 'Sexo', 'Usuario', 'usuario.roles'];
+    }
+
+    /**
+     * Builds Eloquent query for fetching entity in show method.
+     *
+     * @param Request $request
+     * @param array $requestedRelations
+     * @return Builder
+     */
+    protected function buildFetchQuery(Request $request, array $requestedRelations): Builder
+    {
+        $query = parent::buildFetchQuery($request, $requestedRelations);
+
+        $relations = [
+            'TipoDocumento' => ['id', 'nombre'],
+            'Nacionalidad' => ['id', 'nombre'],
+            'Sexo' => ['id', 'nombre'],
+            'Usuario' => ['id', 'name', 'email'], 
+            'usuario.roles' => ['id', 'label'], // Incluye la relación directamente
+        ];
+    
+        // Itera sobre las relaciones y personaliza la consulta
+        foreach ($relations as $relation => $fields) {
+            $query->with([$relation => function ($query) use ($fields) {
+                $query->select($fields);
+            }]);
+        }
+        return $query;
+    }
